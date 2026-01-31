@@ -5,6 +5,9 @@ const tableBody = document.getElementById("expenses-table");
 const totalEl = document.getElementById("total");
 const filterInput = document.getElementById("filter-category");
 const sortBtn = document.getElementById("sort-btn");
+const statusEl = document.getElementById("status");
+const submitBtn = document.getElementById("submit-btn");
+
 
 let sortDesc = false;
 
@@ -13,20 +16,29 @@ function generateRequestId() {
 }
 
 async function fetchExpenses() {
-  let url = API_URL;
+  try {
+    let url = API_URL;
 
-  const category = filterInput.value;
-  const params = [];
+    const category = filterInput.value;
+    const params = [];
 
-  if (category) params.push(`category=${encodeURIComponent(category)}`);
-  if (sortDesc) params.push(`sort=date_desc`);
+    if (category) params.push(`category=${encodeURIComponent(category)}`);
+    if (sortDesc) params.push(`sort=date_desc`);
 
-  if (params.length) url += "?" + params.join("&");
+    if (params.length) url += "?" + params.join("&");
 
-  const res = await fetch(url);
-  const data = await res.json();
-  renderExpenses(data);
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error("Failed to load expenses");
+    }
+
+    const data = await res.json();
+    renderExpenses(data);
+  } catch (err) {
+    statusEl.textContent = "Unable to load expenses.";
+  }
 }
+
 
 function renderExpenses(expenses) {
   tableBody.innerHTML = "";
@@ -51,6 +63,10 @@ function renderExpenses(expenses) {
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  statusEl.textContent = "";
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Saving...";
+
   const expense = {
     amount: Number(document.getElementById("amount").value),
     category: document.getElementById("category").value,
@@ -59,14 +75,25 @@ form.addEventListener("submit", async (e) => {
     requestId: generateRequestId()
   };
 
-  await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(expense)
-  });
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(expense)
+    });
 
-  form.reset();
-  fetchExpenses();
+    if (!res.ok) {
+      throw new Error("Failed to save expense");
+    }
+
+    form.reset();
+    await fetchExpenses();
+  } catch (err) {
+    statusEl.textContent = "Something went wrong. Please try again.";
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Add";
+  }
 });
 
 filterInput.addEventListener("input", fetchExpenses);
