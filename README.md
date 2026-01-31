@@ -67,3 +67,9 @@ production-like behavior within the time constraint.
 ```bash
 cd expense-tracker
 ./mvnw spring-boot:run
+
+Then open 
+http://localhost:8080
+
+##Live Demo 
+🔗 Live URL:https://fenmo-assignment.onrender.com/
