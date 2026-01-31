@@ -8,6 +8,8 @@ import com.fenmo.expense_tracker.repository.ExpenseRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ExpenseService {
     private final ExpenseRepository repository;
@@ -29,5 +31,18 @@ public class ExpenseService {
                     expense.setRequestId(request.getRequestId());
                     return repository.save(expense);
                 });
+    }
+
+    public List<Expense> getExpenses(String category, boolean sortByDateDesc) {
+
+        if (category != null && !category.isBlank()) {
+            return repository.findByCategoryOrderByDateDesc(category);
+        }
+
+        if (sortByDateDesc) {
+            return repository.findAllByOrderByDateDesc();
+        }
+
+        return repository.findAll();
     }
 }

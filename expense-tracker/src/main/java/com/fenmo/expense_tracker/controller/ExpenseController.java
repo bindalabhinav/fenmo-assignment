@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/expenses")
 public class ExpenseController {
@@ -21,5 +23,15 @@ public class ExpenseController {
     @ResponseStatus(HttpStatus.CREATED)
     public Expense createExpense(@Valid @RequestBody CreateExpenseRequest request) {
         return service.createExpense(request);
+    }
+
+
+    @GetMapping
+    public List<Expense> getExpenses(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false, name = "sort") String sort
+    ) {
+        boolean sortByDateDesc = "date_desc".equalsIgnoreCase(sort);
+        return service.getExpenses(category, sortByDateDesc);
     }
 }
